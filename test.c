@@ -37,13 +37,15 @@ int put(ring_t *q, char in_data)
   if(!q){
     return -1;
   }
+
+  q->head = (q->tail)+1
   *(q->head) = in_data;
   /*head refresh
    *
    */
   q->head = (q->head+sizeof(in_data)) % q->size;
   return 0;
-  
+
 }
 
 
@@ -52,10 +54,13 @@ int get(ring_t *q, char out_data)
   if(!q){
     return -1;
   }
- 
+
   out_data = *(q->head);
 
-  q->tail = 
+
+ //memcpy使う？？
+  q->head = q->head+(sizeof(out_data));
+
+  return 0;
 
 }
-
