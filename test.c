@@ -2,6 +2,9 @@
 #include<stdlib.h>
 
 
+#define Failure -1
+#define True 0
+
 typedef struct ring_buf{
   char *buf;
   char *head;
@@ -10,7 +13,7 @@ typedef struct ring_buf{
 } ring_t;
 
 
-void buf_init(ring_t *q , int b_size)
+int buf_init(ring_t *q , int b_size)
 {
   q->size = b_size;
   q->buf= (char *)malloc(sizeof(char *)*b_size);
@@ -24,9 +27,9 @@ void buf_init(ring_t *q , int b_size)
 int buf_state(ring_t *q)
 {
   if(q->head == q->tail){
-    return -1;
+    return Failure;
   }else if(q->tail+1 == q->head){
-    return -2;
+    return Failure;
   }
   return 0;
 }
@@ -35,15 +38,14 @@ int buf_state(ring_t *q)
 int put(ring_t *q, char in_data)
 {
   if(!q){
-    return -1;
+    return Failure;
   }
-
-  q->head = (q->tail)+1
   *(q->head) = in_data;
   /*head refresh
    *
    */
   q->head = (q->head+sizeof(in_data)) % q->size;
+  q->head = q->head+1;
   return 0;
 
 }
@@ -52,15 +54,13 @@ int put(ring_t *q, char in_data)
 int get(ring_t *q, char out_data)
 {
   if(!q){
-    return -1;
+    return Failure;
   }
 
-  out_data = *(q->head);
-
-
+  out_data = *(q->tail);
  //memcpy使う？？
-  q->head = q->head+(sizeof(out_data));
-
+  q->tail = (q->tail+sizeof(out_data)) % q->size;
+  q->tail = q->tail+1;
   return 0;
 
 }
