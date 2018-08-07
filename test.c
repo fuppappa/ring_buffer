@@ -16,9 +16,11 @@ typedef struct ring_buf{
 int buf_init(ring_t *q , int b_size)
 {
   q->size = b_size;
-  q->buf= (char *)malloc(sizeof(char *)*b_size);
+  q->buf= (char *)malloc(sizeof(char *) * b_size);
   q->head=q->buf;
   q->tail=q->buf;
+
+  return 0;
 
 }
 
@@ -44,23 +46,51 @@ int put(ring_t *q, char in_data)
   /*head refresh
    *
    */
-  q->head = (q->head+sizeof(in_data)) % q->size;
-  q->head = q->head+1;
+  q->head = q->buf + (int)((q->head - q->buf)+sizeof(in_data)) % q->size;
   return 0;
 
 }
 
 
-int get(ring_t *q, char out_data)
+int get(ring_t *q, char *out_data)
 {
   if(!q){
     return Failure;
   }
 
-  out_data = *(q->tail);
- //memcpy使う？？
-  q->tail = (q->tail+sizeof(out_data)) % q->size;
-  q->tail = q->tail+1;
+  *out_data = *(q->tail);
+
+  q->tail = q->buf + ((q->tail - q->buf) + sizeof(*out_data)) % q->size;
   return 0;
 
+}
+
+
+int main(void)
+{
+  ring_t queue;
+  const int buf_size = 3;
+
+  char indata = 0x22;
+  char outdata;
+
+
+  buf_init(&queue, buf_size);
+
+  put(&queue, indata);
+  indata = 0x23;
+  put(&queue, indata);
+  indata = 0x24;
+  put(&queue, indata);
+  indata = 0x25;
+  put(&queue, indata);
+  get(&queue, &outdata);
+  printf("%x\n", outdata);
+  get(&queue, &outdata);
+  printf("%x\n", outdata);
+  get(&queue, &outdata);
+  printf("%x\n", outdata);
+  get(&queue, &outdata);
+  printf("%x\n", outdata);
+  return 0;
 }
