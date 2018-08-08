@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<stdlib.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
 
 #define Failure -1
 #define True 0
@@ -37,18 +37,20 @@ int buf_state(ring_t *q)
 }
 
 
-int put(ring_t *q, char in_data)
+int put(ring_t *q, void *in_data, int size)
 {
   if(!q){
     return Failure;
   }
-  *(q->head) = in_data;
-  /*head refresh
-   *
-   */
-  q->head = q->buf + (int)((q->head - q->buf)+sizeof(in_data)) % q->size;
-  return 0;
 
+  memcpy(q->head, in_data, size);
+  printf("%dbyte\n", size);
+  //*(q->head) = in_data;
+  /*head refresh
+  */
+  q->head = q->buf + (int)((q->head - q->buf)+size) % q->size;
+
+  return 0;
 }
 
 
@@ -58,32 +60,41 @@ int get(ring_t *q, char *out_data)
     return Failure;
   }
 
-  *out_data = *(q->tail);
+
+  memcpy(out_data, q->tail, sizeof(*out_data));
+  //  *out_data = *(q->tail);
 
   q->tail = q->buf + ((q->tail - q->buf) + sizeof(*out_data)) % q->size;
-  return 0;
 
+  return 0;
 }
 
 
 int main(void)
 {
   ring_t queue;
-  const int buf_size = 3;
-
-  char indata = 0x22;
+  const int buf_size = 5;
+  int intdata =0x99887766;
+  char indata = 0x66;
   char outdata;
 
 
   buf_init(&queue, buf_size);
+  put(&queue, &indata, sizeof(indata));
+  put(&queue, &intdata, sizeof(intdata));
+  indata = 0x11;
+  put(&queue, &indata, sizeof(indata));
+  indata = 0x22;
+  put(&queue, &indata, sizeof(indata));
+  indata = 0x33;
+  put(&queue, &indata, sizeof(indata));
+  indata = 0x44;
+  put(&queue, &indata, sizeof(indata));
+  indata = 0x55;
+  put(&queue, &indata, sizeof(indata));
 
-  put(&queue, indata);
-  indata = 0x23;
-  put(&queue, indata);
-  indata = 0x24;
-  put(&queue, indata);
-  indata = 0x25;
-  put(&queue, indata);
+  get(&queue, &outdata);
+  printf("%x\n", outdata);
   get(&queue, &outdata);
   printf("%x\n", outdata);
   get(&queue, &outdata);
