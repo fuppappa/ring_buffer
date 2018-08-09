@@ -24,8 +24,6 @@ int buf_init(ring_t *q , int b_size)
 
 }
 
-
-
 int buf_state(ring_t *q)
 {
   if(q->head == q->tail){
@@ -39,11 +37,19 @@ int buf_state(ring_t *q)
 
 int put(ring_t *q, void *in_data, int size)
 {
+  int i = 0;
   if(!q){
     return Failure;
   }
 
-  memcpy(q->head, in_data, size);
+  if((int)((q->head - q->buf)+size) > q->size){
+    for(i=0; i<size; i++){
+      *(q->head) = *((char *)in_data+i);
+      q->head = q->buf + (int)((q->head - q->buf)+sizeof(char)) % q->size;
+    }
+  }else{
+    memcpy(q->head, in_data, size);
+  }
   printf("%dbyte\n", size);
   //*(q->head) = in_data;
   /*head refresh
@@ -60,10 +66,8 @@ int get(ring_t *q, char *out_data)
     return Failure;
   }
 
-
   memcpy(out_data, q->tail, sizeof(*out_data));
   //  *out_data = *(q->tail);
-
   q->tail = q->buf + ((q->tail - q->buf) + sizeof(*out_data)) % q->size;
 
   return 0;
@@ -75,15 +79,15 @@ int main(void)
   ring_t queue;
   const int buf_size = 5;
   int intdata =0x99887766;
-  char indata = 0x66;
+  char indata = 0x22;
   char outdata;
 
 
   buf_init(&queue, buf_size);
   put(&queue, &indata, sizeof(indata));
-  put(&queue, &intdata, sizeof(intdata));
   indata = 0x11;
   put(&queue, &indata, sizeof(indata));
+  put(&queue, &intdata, sizeof(intdata));
   indata = 0x22;
   put(&queue, &indata, sizeof(indata));
   indata = 0x33;
