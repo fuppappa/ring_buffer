@@ -1,6 +1,16 @@
+
+/*
+* this program is ringbuffer module
+* part of the program used for research
+* developer yfujieda
+* target machine is hammerhead (Nexus5)
+*
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 
 #define Failure -1
 #define True 0
